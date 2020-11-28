@@ -1,0 +1,141 @@
+<html>
+	<head>
+		<title>TO-DO</title>
+		<meta charset="UTF-8" />
+		
+		<link rel="stylesheet" href="https://cdn.louis-parent.fr/drawers/style/?f=background+positioning+bordering+text+cursor+utils+sizing"/>
+		<script src="https://cdn.louis-parent.fr/drawers/script/?f=movable"></script>
+		
+		<style>
+			@font-face
+			{
+  				font-family: "Eraser";
+  				src: url("./font/Eraser.ttf") format("truetype");
+
+			}
+		
+			html
+			{
+				font-family: "Eraser";
+				color: white;
+			}
+			
+			.todo
+			{
+				font-size: 2.5vw;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+			}
+			
+			.todo .check
+			{
+				width: 3vw;
+				margin-right: 1vw;
+			}
+			
+		</style>
+		
+		<script>
+			const TO_DO_ITEMS = "todos";
+			const NOT_CHECKED_SRC = "./assets/box.png";
+			const CHECKED_SRC = "./assets/checked.png";
+		
+			var nextId = 0;
+			
+			const todoObserver = new MutationObserver(function(mutations) {
+				mutations.forEach(function(mutationRecord) {
+					saveToDos();
+				});    
+			});
+			
+			function createToDo(x, y, content, checked)
+			{
+				x = x || window.innerWidth/2;
+				y = y || window.innerHeight/2;
+				content = content || "new To Do";
+				checked = checked || false;
+				
+				let todoElement = document.createElement("div");
+				todoElement.id = nextId++;
+				todoElement.classList.add("todo");
+				todoElement.classList.add("absolute");
+				todoElement.classList.add("grab-cursor");
+				todoElement.style.left = x + "px";
+				todoElement.style.top = y + "px";
+				todoElement.setAttribute("checked", checked);
+				todoElement.setAttribute("movableon", "board");
+				todoElement.setAttribute("movingstyle", "continuous");
+				todoElement.setAttribute("dropoverlap", "true");
+				window.getDrawersInstance().getDrawer("movable").addMover(todoElement);
+				todoObserver.observe(todoElement, { attributes : true, attributeFilter : ['style'] });
+				
+				let checkElement = document.createElement("img");
+				checkElement.classList.add("check");
+				checkElement.classList.add("pointer-cursor");
+				checkElement.classList.add("unselectable");
+				checkElement.src = checked ? CHECKED_SRC : NOT_CHECKED_SRC;
+				checkElement.addEventListener("click", (event) => {
+					checkToDo(event.target.parentNode);
+					saveToDos();
+				});
+				
+				let contentElement = document.createElement("span");
+				contentElement.classList.add("content");
+				contentElement.classList.add("text-cursor");
+				contentElement.contentEditable = "true";
+				contentElement.innerText = content;
+				contentElement.addEventListener("blur",() => {
+					saveToDos();
+				});
+				
+				todoElement.appendChild(checkElement);
+				todoElement.appendChild(contentElement);
+				
+				document.body.appendChild(todoElement);
+			}
+			
+			function checkToDo(toDoElement)
+			{
+				let checked = !(toDoElement.getAttribute("checked") === "true");
+				toDoElement.getElementsByClassName("check")[0].src = (checked ? CHECKED_SRC : NOT_CHECKED_SRC);
+				toDoElement.setAttribute("checked", checked);
+			}
+			
+			function saveToDos()
+			{
+				let toDos = [];
+				
+				for(let element of document.getElementsByClassName("todo"))
+				{
+					toDos.push({
+						checked: element.getAttribute("checked") === "true",
+						x: parseInt(element.style.left),
+						y: parseInt(element.style.top),
+						content: element.getElementsByClassName("content")[0].innerText
+					});
+				}
+				
+				window.localStorage.setItem(TO_DO_ITEMS, JSON.stringify(toDos));
+			}
+			
+			function loadToDos()
+			{
+				JSON.parse(window.localStorage.getItem(TO_DO_ITEMS)).forEach(todo => {
+					console.log(todo);
+					createToDo(todo.x, todo.y, todo.content, todo.checked);
+				});
+			}
+			
+			window.addEventListener("load", () => {
+				loadToDos();
+			});
+			
+		</script>
+	</head>
+	
+	<body id="board" class="full-background full-size unscrollable" style="background: url('./assets/background.jpg');">
+		<h1 class="absolute" style="top: 5vh; left: 3vw; font-size: 5vw;">To Do :</h1>	
+		<button class="no-border absolute circle centered-text pointer-cursor" style="padding: 0; width: 3.5vw; height: 3.5vw; top: 3vh; right: 1.5vw; background: white;" onclick="createToDo();"><img style="width: 2vw;" src="./assets/item.png" alt="Add" /></button>
+	</body>
+</html>
