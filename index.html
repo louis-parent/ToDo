@@ -35,6 +35,12 @@
 				margin-right: 1vw;
 			}
 			
+			.todo .delete
+			{
+				margin-left: 0.25em;
+				font-size: 0.75em;
+			}
+			
 		</style>
 		
 		<script>
@@ -58,7 +64,7 @@
 				checked = checked || false;
 				
 				let todoElement = document.createElement("div");
-				todoElement.id = nextId++;
+				todoElement.id = nextId;
 				todoElement.classList.add("todo");
 				todoElement.classList.add("absolute");
 				todoElement.classList.add("grab-cursor");
@@ -86,14 +92,27 @@
 				contentElement.classList.add("text-cursor");
 				contentElement.contentEditable = "true";
 				contentElement.innerText = content;
-				contentElement.addEventListener("blur",() => {
+				contentElement.addEventListener("blur", () => {
+					saveToDos();
+				});
+				
+				let deleteElement = document.createElement("span");
+				deleteElement.classList.add("delete");
+				deleteElement.classList.add("pointer-cursor");
+				deleteElement.style.color = "#fa432f";
+				deleteElement.innerText = "x";
+				deleteElement.setAttribute("todo", nextId);
+				deleteElement.addEventListener("click", (event) => {
+					deleteToDo(event.target.getAttribute("todo"));
 					saveToDos();
 				});
 				
 				todoElement.appendChild(checkElement);
 				todoElement.appendChild(contentElement);
+				todoElement.appendChild(deleteElement);
 				
 				document.body.appendChild(todoElement);
+				nextId++;
 			}
 			
 			function checkToDo(toDoElement)
@@ -126,6 +145,11 @@
 					console.log(todo);
 					createToDo(todo.x, todo.y, todo.content, todo.checked);
 				});
+			}
+			
+			function deleteToDo(id)
+			{
+				document.getElementById(id).remove();
 			}
 			
 			window.addEventListener("load", () => {
