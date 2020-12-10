@@ -142,7 +142,6 @@
 			function loadToDos()
 			{
 				JSON.parse(window.localStorage.getItem(TO_DO_ITEMS)).forEach(todo => {
-					console.log(todo);
 					createToDo(todo.x, todo.y, todo.content, todo.checked);
 				});
 			}
